@@ -4,8 +4,8 @@ import os
 import re
 
 
-def main():
-    find_files("/Users/wuhao02/Nutstore Files/文档/JBlog/content/posts/")
+def main(rootpath):
+    find_files(rootpath)
 
 
 def find_files(rootpath):
@@ -36,4 +36,4 @@ def generate_tags_and_categories(filename, tags, categories):
 
 
 if __name__ == "__main__":
-    main()
+    main("/Users/wuhao02/Nutstore Files/文档/JBlog/content/posts/")
