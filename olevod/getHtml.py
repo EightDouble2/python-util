@@ -1,5 +1,6 @@
+# olevod页面抓取
+
 import requests
-from bs4 import BeautifulSoup
 import bs4
 import json
 import re
@@ -12,11 +13,12 @@ def __get_html_text__(url):
         r.encoding = r.apparent_encoding
         return r.text
     except Exception as e:
+        print("{} 获取失败".format(url))
         return ""
 
 
 def __fill_video_infos__(video_infos, root_url, html):
-    soup = BeautifulSoup(html, "html.parser")
+    soup = bs4.BeautifulSoup(html, "html.parser")
 
     title = soup.find('h2', attrs={'class': 'title scookie'}).text
 
@@ -31,7 +33,7 @@ def __get_m3u8_url__(video_infos):
         video_title = video_info[0]
         video_name = video_info[1]
         html = __get_html_text__(video_info[2])
-        soup = BeautifulSoup(html, "html.parser")
+        soup = bs4.BeautifulSoup(html, "html.parser")
         video_url_json = json.loads(re.findall(r".*?({.*?})",
                                                soup.find('div', attrs={'class': 'player_video embed-responsive '
                                                                                 'embed-responsive-16by9 '

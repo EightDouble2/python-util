@@ -1,3 +1,5 @@
+# olevod视频下载
+
 import requests
 import os
 
@@ -13,15 +15,26 @@ def __get_video__(video_infos, video_root_path):
 
         video_path_name = "{}/{}".format(video_path, video_name)
         if not os.path.exists(video_path_name):
-            with open(video_path_name, "wb+") as file:
-                file.write(requests.get(video_info[4]).content)
+            finish = False
+            retry_times = 0
+            while not finish:
+                try:
+                    with open(video_path_name, "wb+") as file:
+                        file.write(requests.get(video_info[4]).content)
 
-            m4s_urls = video_info[5]
-            print("正在下载: {} {} {} / {}".format(video_title, video_name, 0, len(m4s_urls)), end="")
-            for m4s_index, m4s_url in enumerate(m4s_urls):
-                with open(video_path_name, "ab+") as file:
-                    file.write(requests.get(m4s_url).content)
-                print("\r正在下载: {} {} {} / {}".format(video_title, video_name, m4s_index + 1, len(m4s_urls)), end="")
-            print("\r{} {} 下载完成".format(video_title, video_name))
+                    m4s_urls = video_info[5]
+                    print("正在下载: {} {} {} / {}".format(video_title, video_name, 0, len(m4s_urls)), end="")
+                    for m4s_index, m4s_url in enumerate(m4s_urls):
+                        with open(video_path_name, "ab+") as file:
+                            file.write(requests.get(m4s_url).content)
+                        print("\r正在下载: {} {} {} / {}".format(video_title, video_name, m4s_index + 1, len(m4s_urls)),
+                              end="")
+
+                    finish = True
+                    print("\r{} {} 下载完成".format(video_title, video_name))
+                except Exception as e:
+                    finish = False
+                    retry_times = retry_times + 1
+                    print("\r{} {} 下载失败 重试第{}次".format(video_title, video_name, retry_times))
         else:
             print("{} {} 已存在".format(video_title, video_name))
