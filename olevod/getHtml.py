@@ -6,6 +6,15 @@ import json
 import re
 
 
+def __get_video_infos__(root_url, path):
+    video_infos = []
+    html = __get_html_text__(root_url + path)
+    __fill_video_infos__(video_infos, root_url, html)
+    __get_m3u8_url__(video_infos)
+    __get_video_url__(video_infos)
+    return video_infos
+
+
 def __get_html_text__(url):
     while True:
         try:

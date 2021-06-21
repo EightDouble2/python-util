@@ -4,12 +4,8 @@ import re
 
 
 def __main__(root_url, path, video_root_path):
-    video_infos = []
-    html = getHtml.__get_html_text__(root_url + path)
-    getHtml.__fill_video_infos__(video_infos, root_url, html)
-    getHtml.__get_m3u8_url__(video_infos)
-    getHtml.__get_video_url__(video_infos)
-    getVideo.__get_video__(video_infos, video_root_path)
+    video_infos = getHtml.__get_video_infos__(root_url, path)
+    getVideo.__get_videos__(video_infos, video_root_path)
 
 
 if __name__ == "__main__":
