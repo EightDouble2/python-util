@@ -9,32 +9,56 @@ def __get_video__(video_infos, video_root_path):
         video_title = video_info[0]
         video_name = "{:0>3}.{}.mp4".format(index + 1, video_info[1])
         video_path = "{}/{}".format(video_root_path, video_info[0])
+        m4s_urls = video_info[5]
+        m4s_total = len(m4s_urls)
 
         if not os.path.exists(video_path):
             os.makedirs(video_path)
 
         video_path_name = "{}/{}".format(video_path, video_name)
         if not os.path.exists(video_path_name):
+            print("正在下载: {} {} {} / {}".format(video_title, video_name, 0, m4s_total), end="")
+            for m4s_index, m4s_url in enumerate(m4s_urls):
+                m4s_path_name = "{}-{}".format(video_path_name, m4s_index + 1)
+                if not os.path.exists(m4s_path_name):
+                    finish = False
+                    retry_times = 0
+                    while not finish:
+                        try:
+                            print("\r正在下载: {} {} {} / {}".format(
+                                video_title, video_name, m4s_index + 1, m4s_total), end="")
+                            with open(m4s_path_name, "wb+") as file:
+                                file.write(requests.get(m4s_url).content)
+                            finish = True
+                        except Exception as e:
+                            retry_times = retry_times + 1
+                            print("\r下载失败: {} {} {} / {} 重试第{}次".format(
+                                video_title, video_name, m4s_index + 1, m4s_total, retry_times))
+
+            print("\r正在下载根文件: {} {}".format(video_title, video_name), end="")
             finish = False
             retry_times = 0
             while not finish:
                 try:
                     with open(video_path_name, "wb+") as file:
                         file.write(requests.get(video_info[4]).content)
-
-                    m4s_urls = video_info[5]
-                    print("正在下载: {} {} {} / {}".format(video_title, video_name, 0, len(m4s_urls)), end="")
-                    for m4s_index, m4s_url in enumerate(m4s_urls):
-                        with open(video_path_name, "ab+") as file:
-                            file.write(requests.get(m4s_url).content)
-                        print("\r正在下载: {} {} {} / {}".format(video_title, video_name, m4s_index + 1, len(m4s_urls)),
-                              end="")
-
                     finish = True
-                    print("\r{} {} 下载完成".format(video_title, video_name))
                 except Exception as e:
-                    finish = False
                     retry_times = retry_times + 1
-                    print("\r{} {} 下载失败 重试第{}次".format(video_title, video_name, retry_times))
+                    print("\r根文件下载失败: {} {} 重试第{}次".format(
+                        video_title, video_name, retry_times))
+
+            print("\r正在合并: {} {}".format(video_title, video_name), end="")
+            with open(video_path_name, "ab+") as file:
+                for m4s_index in range(m4s_total):
+                    with open("{}-{}".format(video_path_name, m4s_index + 1), "rb") as m4s_file:
+                        file.write(m4s_file.read())
+
+            print("\r正在清除缓存: {} {}".format(video_title, video_name), end="")
+            for m4s_index in range(m4s_total):
+                os.remove("{}-{}".format(video_path_name, m4s_index + 1))
+
+            print("\r已完成: {} {}".format(video_title, video_name), end="")
+
         else:
-            print("{} {} 已存在".format(video_title, video_name))
+            print("已完成: {} {}".format(video_title, video_name))

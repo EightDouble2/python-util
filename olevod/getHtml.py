@@ -7,14 +7,14 @@ import re
 
 
 def __get_html_text__(url):
-    try:
-        r = requests.get(url)
-        r.raise_for_status()
-        r.encoding = r.apparent_encoding
-        return r.text
-    except Exception as e:
-        print("{} 获取失败".format(url))
-        return ""
+    while True:
+        try:
+            r = requests.get(url)
+            r.raise_for_status()
+            r.encoding = r.apparent_encoding
+            return r.text
+        except Exception as e:
+            print("{} 获取失败".format(url))
 
 
 def __fill_video_infos__(video_infos, root_url, html):
