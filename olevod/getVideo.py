@@ -22,9 +22,8 @@ def __get_videos__(video_infos, video_root_path):
             __get_m4s_root__(video_title, video_name, m4s_root_url, video_path_name)
             __merge_video__(video_title, video_name, m4s_total, video_path_name)
             __clear_m4s__(video_title, video_name, m4s_total, video_path_name)
-            print("\r已完成: {} {}".format(video_title, video_name), end="")
-        else:
-            print("已完成: {} {}".format(video_title, video_name))
+
+        print("已完成: {} {}".format(video_title, video_name))
 
 
 def __get_m4s__(video_title, video_name, m4s_urls, m4s_total, video_path_name):
@@ -45,10 +44,11 @@ def __get_m4s__(video_title, video_name, m4s_urls, m4s_total, video_path_name):
                     retry_times = retry_times + 1
                     print("\r下载失败: {} {} {} / {} 重试第{}次".format(
                         video_title, video_name, m4s_index + 1, m4s_total, retry_times))
+    print("\r下载完成: {} {}".format(video_title, video_name))
 
 
 def __get_m4s_root__(video_title, video_name, m4s_root_url, video_path_name):
-    print("\r正在下载根文件: {} {}".format(video_title, video_name), end="")
+    print("正在下载根文件: {} {}".format(video_title, video_name), end="")
     finish = False
     retry_times = 0
     while not finish:
@@ -60,17 +60,20 @@ def __get_m4s_root__(video_title, video_name, m4s_root_url, video_path_name):
             retry_times = retry_times + 1
             print("\r根文件下载失败: {} {} 重试第{}次".format(
                 video_title, video_name, retry_times))
+    print("\r根文件下载完成: {} {}".format(video_title, video_name))
 
 
 def __merge_video__(video_title, video_name, m4s_total, video_path_name):
-    print("\r正在合并: {} {}".format(video_title, video_name), end="")
+    print("正在合并: {} {}".format(video_title, video_name), end="")
     with open(video_path_name, "ab+") as file:
         for m4s_index in range(m4s_total):
             with open("{}-{}".format(video_path_name, m4s_index + 1), "rb") as m4s_file:
                 file.write(m4s_file.read())
+    print("\r合并完成: {} {}".format(video_title, video_name))
 
 
 def __clear_m4s__(video_title, video_name, m4s_total, video_path_name):
-    print("\r正在清除缓存: {} {}".format(video_title, video_name), end="")
+    print("正在清理缓存: {} {}".format(video_title, video_name), end="")
     for m4s_index in range(m4s_total):
         os.remove("{}-{}".format(video_path_name, m4s_index + 1))
+    print("\r缓存清理完成: {} {}".format(video_title, video_name))
