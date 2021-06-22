@@ -32,7 +32,7 @@ def __get_html_text__(url):
 def __fill_video_infos__(video_infos, root_url, html):
     soup = BeautifulSoup(html, "html.parser")
 
-    title = soup.find('h2', attrs={'class': 'title scookie'}).text
+    title = soup.find('h2', attrs={'class': 'title scookie'}).contents[1]
 
     for tag in soup.find('ul', attrs={'class': 'content_playlist list_scroll clearfix'}).children:
         if isinstance(tag, bs4.element.Tag) and tag.name == 'li':
