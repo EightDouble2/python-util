@@ -2,6 +2,7 @@
 
 import requests
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def __get_videos__(video_infos, video_root_path):
@@ -18,7 +19,7 @@ def __get_videos__(video_infos, video_root_path):
 
         video_path_name = "{}/{}".format(video_path, video_name)
         if not os.path.exists(video_path_name):
-            __get_m4s__(video_title, video_name, m4s_urls, m4s_total, video_path_name)
+            __get_m4ss__(video_title, video_name, m4s_urls, m4s_total, video_path_name)
             __get_m4s_root__(video_title, video_name, m4s_root_url, video_path_name)
             __merge_video__(video_title, video_name, m4s_total, video_path_name)
             __clear_m4s__(video_title, video_name, m4s_total, video_path_name)
@@ -26,25 +27,38 @@ def __get_videos__(video_infos, video_root_path):
         print("已完成: {} {}".format(video_title, video_name))
 
 
-def __get_m4s__(video_title, video_name, m4s_urls, m4s_total, video_path_name):
-    print("正在下载: {} {} {} / {}".format(video_title, video_name, 0, m4s_total), end="")
-    for m4s_index, m4s_url in enumerate(m4s_urls):
-        m4s_path_name = "{}-{}".format(video_path_name, m4s_index + 1)
-        if not os.path.exists(m4s_path_name):
-            finish = False
-            retry_times = 0
-            while not finish:
-                try:
-                    print("\r正在下载: {} {} {} / {}".format(
-                        video_title, video_name, m4s_index + 1, m4s_total), end="")
-                    with open(m4s_path_name, "wb+") as file:
-                        file.write(requests.get(m4s_url).content)
-                    finish = True
-                except Exception as e:
-                    retry_times = retry_times + 1
-                    print("\r下载失败: {} {} {} / {} 重试第{}次".format(
-                        video_title, video_name, m4s_index + 1, m4s_total, retry_times))
+def __get_m4ss__(video_title, video_name, m4s_urls, m4s_total, video_path_name):
+    schedule = ["□"] * m4s_total
+    print("正在下载: {} {} {} {} / {}".format(video_title, video_name, "".join(schedule), 0, m4s_total), end="")
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        futures = []
+        for m4s_index, m4s_url in enumerate(m4s_urls):
+            m4s_path_name = "{}-{}".format(video_path_name, m4s_index + 1)
+            if not os.path.exists(m4s_path_name):
+                thread = pool.submit(__get_m4s__, video_title, video_name, m4s_index, m4s_url, m4s_total, m4s_path_name)
+                futures.append(thread)
+
+        for future in as_completed(futures):
+            schedule[future.result()] = "■"
+            print("\r正在下载: {} {} {} {} / {}".format(
+                video_title, video_name, "".join(schedule), schedule.count("■"), m4s_total), end="")
     print("\r下载完成: {} {}".format(video_title, video_name))
+
+
+def __get_m4s__(video_title, video_name, m4s_index, m4s_url, m4s_total, m4s_path_name):
+    finish = False
+    retry_times = 0
+    while not finish:
+        try:
+            with open(m4s_path_name, "wb+") as file:
+                response = requests.get(m4s_url)
+                response.raise_for_status()
+                file.write(response.content)
+            finish = True
+        except Exception as e:
+            retry_times = retry_times + 1
+            print("\r下载失败: {} {} {} / {} 重试第{}次".format(video_title, video_name, m4s_index + 1, m4s_total, retry_times))
+    return m4s_index
 
 
 def __get_m4s_root__(video_title, video_name, m4s_root_url, video_path_name):
@@ -54,12 +68,13 @@ def __get_m4s_root__(video_title, video_name, m4s_root_url, video_path_name):
     while not finish:
         try:
             with open(video_path_name, "wb+") as file:
-                file.write(requests.get(m4s_root_url).content)
+                response = requests.get(m4s_root_url)
+                response.raise_for_status()
+                file.write(response.content)
             finish = True
         except Exception as e:
             retry_times = retry_times + 1
-            print("\r根文件下载失败: {} {} 重试第{}次".format(
-                video_title, video_name, retry_times))
+            print("\r根文件下载失败: {} {} 重试第{}次".format(video_title, video_name, retry_times))
     print("\r根文件下载完成: {} {}".format(video_title, video_name))
 
 
