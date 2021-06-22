@@ -51,13 +51,12 @@ def __get_m4s__(video_title, video_name, m4s_index, m4s_url, m4s_total, m4s_path
         while not finish:
             try:
                 with open(m4s_path_name, "wb+") as file:
-                    response = requests.get(m4s_url)
-                    response.raise_for_status()
-                    file.write(response.content)
+                    file.write(__get_request__(m4s_url))
                 finish = True
             except Exception as e:
                 retry_times = retry_times + 1
-                print("\r下载失败: {} {} {} / {} 重试第{}次".format(video_title, video_name, m4s_index + 1, m4s_total, retry_times))
+                print("\r下载失败: {} {} {} / {} 重试第{}次".format(
+                    video_title, video_name, m4s_index + 1, m4s_total, retry_times))
     return m4s_index
 
 
@@ -68,9 +67,7 @@ def __get_m4s_root__(video_title, video_name, m4s_root_url, video_path_name):
     while not finish:
         try:
             with open(video_path_name, "wb+") as file:
-                response = requests.get(m4s_root_url)
-                response.raise_for_status()
-                file.write(response.content)
+                file.write(__get_request__(m4s_root_url))
             finish = True
         except Exception as e:
             retry_times = retry_times + 1
@@ -92,3 +89,11 @@ def __clear_m4s__(video_title, video_name, m4s_total, video_path_name):
     for m4s_index in range(m4s_total):
         os.remove("{}-{}".format(video_path_name, m4s_index + 1))
     print("\r缓存清理完成: {} {}".format(video_title, video_name))
+
+
+def __get_request__(url):
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, '
+                             'like Gecko) Chrome/91.0.4472.114 Safari/537.36 Edg/91.0.864.54'}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.content
