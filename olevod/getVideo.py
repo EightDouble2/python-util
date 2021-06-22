@@ -29,35 +29,35 @@ def __get_videos__(video_infos, video_root_path):
 
 def __get_m4ss__(video_title, video_name, m4s_urls, m4s_total, video_path_name):
     schedule = ["□"] * m4s_total
-    print("正在下载: {} {} {} {} / {}".format(video_title, video_name, "".join(schedule), 0, m4s_total), end="")
+    print("正在下载: {} {}".format(video_title, video_name))
     with ThreadPoolExecutor(max_workers=10) as pool:
         futures = []
         for m4s_index, m4s_url in enumerate(m4s_urls):
             m4s_path_name = "{}-{}".format(video_path_name, m4s_index + 1)
-            if not os.path.exists(m4s_path_name):
-                thread = pool.submit(__get_m4s__, video_title, video_name, m4s_index, m4s_url, m4s_total, m4s_path_name)
-                futures.append(thread)
+            thread = pool.submit(__get_m4s__, video_title, video_name, m4s_index, m4s_url, m4s_total, m4s_path_name)
+            futures.append(thread)
 
+        print("\r{} {} / {}".format("".join(schedule), schedule.count("■"), m4s_total), end="")
         for future in as_completed(futures):
             schedule[future.result()] = "■"
-            print("\r正在下载: {} {} {} {} / {}".format(
-                video_title, video_name, "".join(schedule), schedule.count("■"), m4s_total), end="")
+            print("\r{} {} / {}".format("".join(schedule), schedule.count("■"), m4s_total), end="")
     print("\r下载完成: {} {}".format(video_title, video_name))
 
 
 def __get_m4s__(video_title, video_name, m4s_index, m4s_url, m4s_total, m4s_path_name):
-    finish = False
-    retry_times = 0
-    while not finish:
-        try:
-            with open(m4s_path_name, "wb+") as file:
-                response = requests.get(m4s_url)
-                response.raise_for_status()
-                file.write(response.content)
-            finish = True
-        except Exception as e:
-            retry_times = retry_times + 1
-            print("\r下载失败: {} {} {} / {} 重试第{}次".format(video_title, video_name, m4s_index + 1, m4s_total, retry_times))
+    if not os.path.exists(m4s_path_name):
+        finish = False
+        retry_times = 0
+        while not finish:
+            try:
+                with open(m4s_path_name, "wb+") as file:
+                    response = requests.get(m4s_url)
+                    response.raise_for_status()
+                    file.write(response.content)
+                finish = True
+            except Exception as e:
+                retry_times = retry_times + 1
+                print("\r下载失败: {} {} {} / {} 重试第{}次".format(video_title, video_name, m4s_index + 1, m4s_total, retry_times))
     return m4s_index
 
 
