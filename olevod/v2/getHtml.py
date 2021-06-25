@@ -1,0 +1,54 @@
+# olevod页面抓取
+
+import requests
+from bs4 import BeautifulSoup
+import bs4
+import json
+import re
+
+
+def __get_video_infos__(root_url, path):
+    video_infos = []
+    html = __get_html_text__(root_url + path)
+    __fill_video_infos__(video_infos, root_url, html)
+    __get_m3u8_url__(video_infos)
+    return video_infos
+
+
+def __get_html_text__(url):
+    while True:
+        try:
+            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, '
+                                     'like Gecko) Chrome/91.0.4472.114 Safari/537.36 Edg/91.0.864.54'}
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            response.encoding = response.apparent_encoding
+            return response.text
+        except Exception as e:
+            print("{} 获取失败".format(url))
+
+
+def __fill_video_infos__(video_infos, root_url, html):
+    soup = BeautifulSoup(html, "html.parser")
+
+    title = soup.find('h2', attrs={'class': 'title scookie'}).contents[1]
+
+    for tag in soup.find('ul', attrs={'class': 'content_playlist list_scroll clearfix'}).children:
+        if isinstance(tag, bs4.element.Tag) and tag.name == 'li':
+            tag_a = tag('a')[0]
+            video_infos.append([title, tag_a.text, root_url + tag_a.attrs['href']])
+
+
+def __get_m3u8_url__(video_infos):
+    for video_info in video_infos:
+        video_title = video_info[0]
+        video_name = video_info[1]
+        html = __get_html_text__(video_info[2])
+        soup = BeautifulSoup(html, "html.parser")
+        video_url_json = json.loads(re.findall(r".*?({.*?})",
+                                               soup.find('div', attrs={'class': 'player_video embed-responsive '
+                                                                                'embed-responsive-16by9 '
+                                                                                'author-qq362695000 '
+                                                                                'clearfix'}).script.string)[0])
+        video_info.append(video_url_json['url'])
+        print("已找到: {} {}".format(video_title, video_name))
