@@ -1,11 +1,13 @@
 import generateImagePath
 import generateTagsAndCategories
+import sys
 
 
-def main(rootpath):
+def main():
     generateImagePath.main(rootpath)
     generateTagsAndCategories.main(rootpath)
 
 
 if __name__ == "__main__":
-    main("/Users/wuhao02/Nutstore Files/文档/JBlog/content/posts/")
+    rootpath = sys.argv[1]
+    main()
