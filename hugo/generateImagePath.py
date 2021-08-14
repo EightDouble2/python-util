@@ -20,10 +20,10 @@ def generate_image_path(filename):
     file = open(filename, mode='r', encoding='utf-8')
     line = []
     for txt in file:
-        if re.match("!\[]\(/image/.*?\.png\)", txt):
+        if re.match("!\[]\(/image/.*?\)", txt):
             line = line[0: -1]
         else:
-            if re.match("!\[]\((\.\./)*static/image/.*?\.png\)", txt):
+            if re.match("!\[]\((\.\./)*static/image/.*?\)", txt):
                 line.extend([re.sub("(\.\./)*static/image/", "/image/", txt), '\n'])
             line.append(txt)
 
